@@ -1,0 +1,23 @@
+pipeline {
+    agent any
+    parameters {
+        choice(name: 'BRANCH_TO_BUILD', choices: ['main', 'springboot3'], description: 'branch to pick')
+    } 
+    stages {
+        stage ('vcs') {
+            steps {
+                git branch: "${params.BRANCH_TO_BUILD}", url: 'https://github.com/spring-projects/spring-petclinic.git'
+            }
+        }
+    }
+    stage ('build') {
+        steps {
+            echo "Hello ${params.BRANCH_TO_BUILD}"
+        }
+    }
+    stage ('archive results') {
+        steps {
+            junit '**/surefire-reports/*.xml'
+        }
+    }
+}
