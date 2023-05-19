@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    stages {
+        stage ('Clone') {
+            steps {
+                git branch: 'main', url: "https://github.com/anjaneyulu4321/spring-petclinic.git"
+            }
+        }
+
+        stage ('Artifactory configuration') {
+            steps {
+                rtServer (
+                    id: "JFROG_sri",
+                    url: "https://orangea.jfrog.io/",
+                    credentialsId: "myjfrogt"
+                )
+
+                rtMavenDeployer (
+                    id: "MAVEN_DEPLOYER",
+                    serverId: "JFROG_sri",
+                    releaseRepo: "ac-libs-release-local",
+                    snapshotRepo: "ac-libs-snapshot-local"
+                )
+
+                rtMavenResolver (
+                    id: "MAVEN_RESOLVER",
+                    serverId: "JFROG_sri",
+                    releaseRepo: "ac-libs-release-local",
+                    snapshotRepo: "ac-libs-snapshot-local"
+                )
+            }
+        }
+
+        stage ('Exec Maven') {
+            steps {
+                rtMavenRun (
+                    tool: "maven", 
+                    pom: 'pom.xml',
+                    goals: 'clean install',
+                    deployerId: "MAVEN_DEPLOYER",
+                    resolverId: "MAVEN_RESOLVER"
+                )
+            }
+        }
+
+        stage ('Publish build info') {
+            steps {
+                rtPublishBuildInfo (
+                    serverId: "JFROG_sri"
+                )
+            }
+        }
+    }
+}
