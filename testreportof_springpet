@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+    options {
+        timeout(time:1,units:'hours')
+        retry(2)
+    }
+    stages {
+        stage ('source code') {
+            steps {
+                git url:'https://github.com/spring-projects/spring-petclinic.git'
+            }
+        }
+        stage ('build the code') {
+            steps {
+                sh script: 'mvn clean package'
+            }
+        }
+        stage ('report') {
+            steps {
+                junit testResults: 'target/surefire-report/*.xml'
+            }
+        }    
+    }
+    post {
+        success {
+            //send the success email
+            echo "success"
+        }
+        unsuccessfull {
+            //send the unsuccess email
+            echo "failure"
+        }
+    }
+}
