@@ -1,0 +1,22 @@
+pipeline {
+    agent ["openmyjdk"]
+    triggers{
+    pollSCM("* * * * *")
+    }
+    stages {
+        stage ('git cloneing') {
+            steps {
+              git branch: 'master',url: 'https://github.com/DevProjectsForDevOps/StudentCoursesRestAPI.git'
+            }
+        }
+        stage ('build tools') {
+            steps {
+              sh "docker image build -t studentcoursesrestapi:1.0 ."
+              sh "docker image tag studentcoursesrestapi:1.0 eanjaneyulu/studentcoursesrestapi:1.0"
+              sh "docker image push eanjaneyulu/studentcoursesrestapi:1.0"
+              sh "docker container run -d -P studentcoursesrestapi:1.0"
+
+            }
+        }
+    }
+}
