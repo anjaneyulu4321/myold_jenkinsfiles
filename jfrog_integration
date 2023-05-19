@@ -1,0 +1,51 @@
+ipeline {
+    agent any
+    parameters {
+        string(name: 'MAVEN_GOAL', defaultValue: 'clean install', description: 'Who should I say hello')
+    }
+    stages  {
+        stage ('vcs') {
+            steps {
+                git branch: "main", url : 'https://github.com/spring-projects/spring-petclinic.git'
+            }
+        }
+         stage ('Artificatory_config') {
+             steps {
+                rtServer (
+                    id: "JGROF_anjimm",
+                    url: "https://anjimm.jfrog.io",
+                    credentialID: "JFROG_anjimm"
+            ) 
+                rtMavenResolver ( 
+                    id: "MAVEN_DEPLOYER",
+                    serverId: 'JFROG_anjimm',
+                    releaseRepo: 'default-libs-release-local',
+                    snapshotRepo: 'default-libs-snapshot-local'
+                    )
+             }
+        }
+        stage ('exce Maven') {
+            steps {
+                rtMavenRun (
+                    tool: 'MAVEN_DEFAULT',
+                    pom: 'pom.xml',
+                    goal: 'clean install',
+                    deployerID: "maven deployer"
+                )
+            }
+        }
+        stage ('publish build') {
+            steps {
+                rtPublishBuildInfo (
+                    serverId: 'JGROG_anjimm'
+                )
+            }
+        }
+        stage ('build') {
+            steps {
+                sh "/opt/apache-maven-3.6.3/bin/mvn ${params.MAVEN_GOAL}"
+            }
+        }
+    }
+
+}
