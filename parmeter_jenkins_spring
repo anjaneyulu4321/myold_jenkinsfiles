@@ -1,0 +1,31 @@
+pipeline 
+{
+    agent any
+    parameters {
+        choice(name: 'BRANCH_TO_BUILD', choices: ['main', 'springboot3'], description: 'branch to pick')
+    }
+    stages
+    {
+        stage('Download_continues')
+        {
+            steps
+            {
+               git branch: "${params.BRANCH_TO_BUILD}", url: 'https://github.com/SpringPetClinic/spring-petclinic.git'
+            }
+        }
+        stage('Continous_Build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage ('Continous_report')
+        {
+            steps
+            {
+                junit '**/surefire-reports/*.xml'
+            }
+        }
+    }
+}
