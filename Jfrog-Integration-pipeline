@@ -1,0 +1,55 @@
+pipeline
+{
+    agent any
+    triggers {
+        pollSCM('* * * * *')
+    }
+    stages{
+        stage('Download the select the branch')
+        {
+            steps
+            {
+                git 'https://github.com/SpringPetClinic/spring-petclinic.git'
+            }
+        }
+        stage ('Artificatory_config')
+        {
+             steps {
+                rtMavenDeployer ( 
+                    id: "MAVEN_DEPLOYER",
+                    serverId: 'balajimay26',
+                    releaseRepo: 'libs-release-local',
+                    snapshotRepo: 'libs-snapshot-local'
+                    )
+             }
+        }
+        stage ('exce Maven') 
+        {
+            steps {
+                rtMavenRun (
+                    tool: 'MVN_3.6.3',
+                    pom: 'pom.xml',
+                    goals: 'package'
+                )
+            }
+        }
+        stage ('publish build') 
+        {
+            steps 
+            {
+                rtPublishBuildInfo (
+                    serverId: "balajimay26"
+                )
+            }
+        }
+        stage('test report')
+        {
+            steps
+            {
+                junit testResults: 'target/surefire-reports/*.xml'
+            }
+        }
+        
+    }
+
+}
